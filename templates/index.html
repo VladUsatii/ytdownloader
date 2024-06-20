@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+{{ the_title }}
+
+<!-- How to do links -->
+<!-- curlycurly url_for('xyz') curlycurly -->
+
+<!-- How to do images -->
+<!-- curlycurly url_for('static', filename='images/tiger.jpg') curlycurly -->
+<style>
+    #loading {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        top: 50%;
+        left: 50%;
+        width: 50px;
+        height: 50px;
+        margin-top: -25px;
+        margin-left: -25px;
+        border: 5px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 5px solid #3498db;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<h1>YouTube Video Downloader</h1>
+<p class="credit">Upon clicking Download, your video will download in full quality.</p>
+<form id="inputForm">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.input_string.label }}<br>
+        {{ form.input_string(size=40) }}<br>
+        {% for error in form.input_string.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>
+
+<div id="loading"></div>
+<div id="result"></div>
+
+<script>
+    document.getElementById('inputForm').onsubmit = function(event) {
+        event.preventDefault();
+        document.getElementById('loading').style.display = 'block';
+
+        var formData = new FormData(this);
+
+        fetch('/process', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            if (data.result) {
+                document.getElementById('result').innerText = data.result;
+            } else if (data.error) {
+                document.getElementById('result').innerText = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result').innerText = 'Error: ' + error.message;
+        });
+    }
+</script>
+
+{% endblock %}
